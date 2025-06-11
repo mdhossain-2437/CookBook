@@ -123,6 +123,11 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  // Catch-all route for 404 Not Found pages
+  {
+    path: "*",
+    element: <NotFound />,
+  }
 ], {
   // React Router v7 future flags
   future: {

@@ -1,7 +1,4 @@
-const { admin, initializeFirebaseAdmin } = require('../firebase-service-account');
-
-// Initialize Firebase Admin
-initializeFirebaseAdmin();
+const { admin } = require('../firebase-service-account');
 
 /**
  * Middleware to verify Firebase authentication token

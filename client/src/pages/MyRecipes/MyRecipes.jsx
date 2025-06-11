@@ -30,11 +30,17 @@ const MyRecipes = () => {
         return;
       }
       const response = await getRecipesByUser();
-      if (response.success) {
-        setRecipes(response.data);
+      if (response.success && Array.isArray(response.data)) {
+        const processedRecipes = response.data.map(recipe => ({
+          ...recipe,
+          ingredients: typeof recipe.ingredients === 'string' ? recipe.ingredients.split('\n') : recipe.ingredients,
+          instructions: typeof recipe.instructions === 'string' ? recipe.instructions.split('\n').join(' ') : (Array.isArray(recipe.instructions) ? recipe.instructions.join(' ') : recipe.instructions), // Display instructions as a single block for card
+          preparationTime: recipe.preparationTime || recipe.prepTime, // Ensure correct field
+        }));
+        setRecipes(processedRecipes);
       } else {
         setRecipes([]);
-        toast.error("Failed to load your recipes");
+        toast.error(response.message || "Failed to load your recipes");
       }
     } catch (error) {
       console.error("Error fetching my recipes:", error);
@@ -159,7 +165,7 @@ const MyRecipes = () => {
 
                       <div className="mb-3">
                         <p className="text-gray-600 dark:text-gray-400 text-sm">
-                          <strong>Prep Time:</strong> {recipe.prepTime} minutes
+                          <strong>Prep Time:</strong> {recipe.preparationTime} minutes
                         </p>
                         <p className="text-gray-600 dark:text-gray-400 text-sm">
                           <strong>Likes:</strong> {recipe.likes}
@@ -190,7 +196,8 @@ const MyRecipes = () => {
                           Instructions:
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-                          {recipe.instructions}
+                          {/* Instructions are now potentially a string joined with spaces, or the original string */}
+                          {typeof recipe.instructions === 'string' ? recipe.instructions : (Array.isArray(recipe.instructions) ? recipe.instructions.join(' ') : '')}
                         </p>
                       </div>
 
