@@ -56,7 +56,7 @@ const Register = () => {
       
       if (result?.user) {
         // Update profile with name and photo
-        await updateUserProfile(name, photoURL);
+        await updateUserProfile({ displayName: name, photoURL: photoURL });
         
         toast.success("Registration successful! Welcome to Recipe Book.");
         navigate("/");

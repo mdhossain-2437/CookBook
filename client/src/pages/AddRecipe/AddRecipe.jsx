@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Fade } from "react-awesome-reveal";
 import { toast } from "react-toastify";
-import { FaPlus, FaTrash, FaImage } from "react-icons/fa";
+import { FaPlus, FaTrash, FaImage, FaUpload } from "react-icons/fa";
 import { addRecipe } from "../../api/recipeApi";
 import useAuth from "../../hooks/useAuth";
 import SectionTitle from "../../components/Shared/SectionTitle/SectionTitle";
 import Loader from "../../components/Shared/Loader/Loader";
+import { uploadImageToImgBB } from "../../utils/imageUpload";
 
 const AddRecipe = () => {
   const navigate = useNavigate();
@@ -14,14 +15,16 @@ const AddRecipe = () => {
   const [loading, setLoading] = useState(false);
   const [ingredients, setIngredients] = useState([""]);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
 
   // Form state
   const [formData, setFormData] = useState({
     title: "",
-    image: "",
+    // image: "", // Will be handled by imageFile state
     instructions: "",
     cuisineType: "",
-    prepTime: "",
+    preparationTime: "", // Match schema
   });
 
   // Available options
@@ -35,6 +38,17 @@ const AddRecipe = () => {
       ...formData,
       [name]: value,
     });
+  };
+
+  const handleImageFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    } else {
+      setImageFile(null);
+      setImagePreview("");
+    }
   };
 
   // Handle ingredient changes
@@ -76,17 +90,21 @@ const AddRecipe = () => {
       return false;
     }
 
-    if (!formData.image.trim()) {
-      toast.error("Please provide an image URL");
-      return false;
-    }
+    // Image is now optional if not uploading a new one, but if file selected, it's part of the flow.
+    // The actual requirement for an image on the backend schema should be considered.
+    // For now, we'll proceed assuming an image is desired.
+    // if (!imageFile && !formData.image) { // If we allow keeping an old URL
+    //   toast.error("Please select an image or provide an image URL");
+    //   return false;
+    // }
+
 
     if (!formData.cuisineType) {
       toast.error("Please select a cuisine type");
       return false;
     }
 
-    if (!formData.prepTime || formData.prepTime <= 0) {
+    if (!formData.preparationTime || Number(formData.preparationTime) <= 0) {
       toast.error("Please enter a valid preparation time");
       return false;
     }
@@ -123,24 +141,49 @@ const AddRecipe = () => {
     }
 
     // Filter out empty ingredients
-    const filteredIngredients = ingredients.filter((i) => i.trim());
+    setLoading(true);
+    let imageUrl = ""; // Keep existing image URL if any, or handle if no new image selected
+
+    if (imageFile) {
+      const uploadedUrl = await uploadImageToImgBB(imageFile);
+      if (uploadedUrl) {
+        imageUrl = uploadedUrl;
+      } else {
+        toast.error("Image upload failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+    } else {
+      // Optional: if you want to allow submitting without a new image, but rely on an old URL
+      // if (formData.image) imageUrl = formData.image;
+      // For this implementation, we'll assume if no new file, no image, unless backend handles optional image
+      toast.error("Please select an image to upload.");
+      setLoading(false);
+      return;
+    }
+
+    const filteredIngredients = ingredients.filter((i) => i.trim()).join("\n"); // Join ingredients
 
     const recipeData = {
-      ...formData,
-      ingredients: filteredIngredients,
+      title: formData.title,
+      instructions: formData.instructions,
+      cuisineType: formData.cuisineType,
+      preparationTime: Number(formData.preparationTime),
+      image: imageUrl,
+      ingredients: filteredIngredients, // Joined string
       categories: selectedCategories,
-      likes: 0,
-      userId: user.uid,
-      userEmail: user.email,
-      userName: user.displayName,
-      createdAt: new Date().toISOString(),
+      // likeCount is defaulted by server
+      addedBy: { // Corrected structure
+        userId: user.uid,
+        userEmail: user.email,
+      }
+      // createdAt is defaulted by server/schema
     };
 
     try {
-      setLoading(true);
       await addRecipe(recipeData);
       toast.success("Recipe added successfully!");
-      navigate("/my-recipes");
+      navigate("/my-recipes"); // Or to the new recipe's page
     } catch (error) {
       console.error("Error adding recipe:", error);
       
@@ -193,39 +236,28 @@ const AddRecipe = () => {
                   htmlFor="image"
                   className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
                 >
-                  Image URL*
+                  Recipe Image*
                 </label>
-                <div className="flex">
-                  <input
-                    type="text"
-                    id="image"
-                    name="image"
-                    value={formData.image}
-                    onChange={handleChange}
-                    placeholder="Enter image URL"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
-                    required
-                  />
-                  <div className="bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-700 rounded-r-lg px-4 flex items-center">
-                    <FaImage className="text-gray-500 dark:text-gray-400" />
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md">
+                  <div className="space-y-1 text-center">
+                    {imagePreview ? (
+                      <img src={imagePreview} alt="Image preview" className="mx-auto h-32 w-auto rounded-md"/>
+                    ) : (
+                      <FaImage className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+                    )}
+                    <div className="flex text-sm text-gray-600 dark:text-gray-400">
+                      <label
+                        htmlFor="image-upload"
+                        className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-primary hover:text-primary-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800 focus-within:ring-primary"
+                      >
+                        <span>Upload a file</span>
+                        <input id="image-upload" name="image-upload" type="file" className="sr-only" onChange={handleImageFileChange} accept="image/*" />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, GIF up to 10MB</p>
                   </div>
                 </div>
-                {formData.image && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                      Preview:
-                    </p>
-                    <img
-                      src={formData.image}
-                      alt="Recipe preview"
-                      className="h-40 object-cover rounded-lg"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/images/recipe-placeholder.jpg";
-                      }}
-                    />
-                  </div>
-                )}
               </div>
 
               {/* Cuisine Type */}
@@ -261,16 +293,16 @@ const AddRecipe = () => {
               {/* Preparation Time */}
               <div className="mb-6">
                 <label
-                  htmlFor="prepTime"
+                  htmlFor="preparationTime"
                   className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
                 >
                   Preparation Time (minutes)*
                 </label>
                 <input
                   type="number"
-                  id="prepTime"
-                  name="prepTime"
-                  value={formData.prepTime}
+                  id="preparationTime"
+                  name="preparationTime"
+                  value={formData.preparationTime}
                   onChange={handleChange}
                   placeholder="Enter preparation time"
                   min="1"

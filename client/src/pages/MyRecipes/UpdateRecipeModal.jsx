@@ -9,11 +9,12 @@ const UpdateRecipeModal = ({ recipe, onClose, onUpdate }) => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [formData, setFormData] = useState({
     _id: "",
+    _id: "",
     title: "",
     image: "",
-    instructions: "",
+    instructions: "", // Should be string for textarea
     cuisineType: "",
-    prepTime: "",
+    preparationTime: "", // Match schema
     likes: 0,
     userId: "",
     userEmail: "",
@@ -32,16 +33,18 @@ const UpdateRecipeModal = ({ recipe, onClose, onUpdate }) => {
         _id: recipe._id,
         title: recipe.title || "",
         image: recipe.image || "",
-        instructions: recipe.instructions || "",
+        // Ensure instructions are a string for the textarea, join if array
+        instructions: Array.isArray(recipe.instructions) ? recipe.instructions.join('\n') : (recipe.instructions || ""),
         cuisineType: recipe.cuisineType || "",
-        prepTime: recipe.prepTime || "",
+        preparationTime: recipe.preparationTime || recipe.prepTime || "", // Prioritize preparationTime
         likes: recipe.likes || 0,
-        userId: recipe.userId || "",
+        userId: recipe.userId || "", // Assuming these are part of recipe prop if needed, though not directly editable
         userEmail: recipe.userEmail || "",
         userName: recipe.userName || "",
         createdAt: recipe.createdAt || new Date().toISOString(),
       });
-      setIngredients(recipe.ingredients || [""]);
+      // Ensure ingredients are an array of strings for the dynamic input fields
+      setIngredients(Array.isArray(recipe.ingredients) ? recipe.ingredients : (typeof recipe.ingredients === 'string' ? recipe.ingredients.split('\n') : [""]));
       setSelectedCategories(recipe.categories || []);
     }
   }, [recipe]);
@@ -104,7 +107,7 @@ const UpdateRecipeModal = ({ recipe, onClose, onUpdate }) => {
       return false;
     }
 
-    if (!formData.prepTime || formData.prepTime <= 0) {
+    if (!formData.preparationTime || Number(formData.preparationTime) <= 0) {
       toast.error("Please enter a valid preparation time");
       return false;
     }
@@ -134,17 +137,38 @@ const UpdateRecipeModal = ({ recipe, onClose, onUpdate }) => {
     if (!validateForm()) return;
 
     // Filter out empty ingredients
-    const filteredIngredients = ingredients.filter((i) => i.trim());
+    const filteredIngredientsString = ingredients.filter((i) => i.trim()).join("\n");
 
-    const updatedRecipe = {
-      ...formData,
-      ingredients: filteredIngredients,
+    const updatedRecipeData = {
+      _id: formData._id, // Keep existing fields not directly in form if needed by backend
+      title: formData.title,
+      image: formData.image,
+      instructions: formData.instructions, // Already a string
+      cuisineType: formData.cuisineType,
+      preparationTime: Number(formData.preparationTime),
       categories: selectedCategories,
+      ingredients: filteredIngredientsString,
+      // Retain other fields like likes, userId, userEmail, userName, createdAt from formData
+      // if they are part of the update payload expected by the backend.
+      // For this example, focusing on editable fields.
+      likes: formData.likes,
+      userId: formData.userId,
+      userEmail: formData.userEmail,
+      userName: formData.userName,
+      createdAt: formData.createdAt,
+      // Ensure addedBy is not sent if not editable, or use correct structure if it is
     };
+
+    // Remove fields that should not be sent or are managed by backend (like addedBy if not changing owner)
+    // For now, we assume the backend handles what to update from this payload.
+    // delete updatedRecipeData.userName; // Example if userName is not in schema for update
+    // delete updatedRecipeData.userId;
+    // delete updatedRecipeData.userEmail;
+
 
     try {
       setLoading(true);
-      await onUpdate(updatedRecipe);
+      await onUpdate(updatedRecipeData);
     } catch (error) {
       console.error("Error updating recipe:", error);
       toast.error("Failed to update recipe");
@@ -269,16 +293,16 @@ const UpdateRecipeModal = ({ recipe, onClose, onUpdate }) => {
             {/* Preparation Time */}
             <div className="mb-6">
               <label
-                htmlFor="prepTime"
+                htmlFor="preparationTime"
                 className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
               >
                 Preparation Time (minutes)*
               </label>
               <input
                 type="number"
-                id="prepTime"
-                name="prepTime"
-                value={formData.prepTime}
+                id="preparationTime"
+                name="preparationTime"
+                value={formData.preparationTime}
                 onChange={handleChange}
                 placeholder="Enter preparation time"
                 min="1"

@@ -32,7 +32,20 @@ const ThemeProvider = ({ children }) => {
   // Update data-theme attribute whenever theme changes
   useEffect(() => {
     if (isMounted) {
-      document.documentElement.setAttribute("data-theme", theme);
+      const root = document.documentElement;
+
+      // For DaisyUI and data-theme attribute strategy
+      root.setAttribute("data-theme", theme);
+
+      // For Tailwind's darkMode: 'class' strategy
+      if (theme === "dark") {
+        root.classList.add("dark");
+        root.classList.remove("light"); // Optional: remove light if you use it
+      } else {
+        root.classList.add("light"); // Optional: add light if you use it
+        root.classList.remove("dark");
+      }
+
       localStorage.setItem("theme", theme);
     }
   }, [theme, isMounted]);
