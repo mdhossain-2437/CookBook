@@ -57,8 +57,8 @@ const Home = () => {
     const fetchTopRecipes = async () => {
       try {
         const response = await axiosPublic.get("/recipes/top");
-        // Ensure response.data is an array
-        const recipesData = Array.isArray(response.data) ? response.data : [];
+        // Ensure response.data.data is an array (API returns { success, count, data })
+        const recipesData = response.data && Array.isArray(response.data.data) ? response.data.data : [];
         setRecipes(recipesData);
         setFilteredRecipes(recipesData);
         setLoading(false);

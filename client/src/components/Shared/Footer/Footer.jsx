@@ -171,7 +171,7 @@ const Footer = () => {
                   <polyline points="22,6 12,13 2,6"></polyline>
                 </svg>
                 <span className="text-neutral-600 dark:text-neutral-400">
-                  info@recipebook.com
+                  contact@recipebook.com
                 </span>
               </li>
             </ul>

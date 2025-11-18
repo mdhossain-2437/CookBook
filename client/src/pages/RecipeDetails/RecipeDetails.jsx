@@ -35,11 +35,21 @@ const RecipeDetails = () => {
     try {
       setLoading(true);
       const data = await getRecipeById(id);
-      setRecipe(data);
+
+      // Process ingredients and instructions if they are strings
+      const processedData = {
+        ...data,
+        ingredients: typeof data.ingredients === 'string' ? data.ingredients.split('\n') : data.ingredients,
+        instructions: typeof data.instructions === 'string' ? data.instructions.split('\n') : data.instructions,
+        preparationTime: data.preparationTime || data.prepTime, // Ensure correct field is used
+      };
+      setRecipe(processedData);
       
       // Check if current user is the owner of this recipe
-      if (user && data.userId === user.uid) {
+      if (user && processedData.addedBy && processedData.addedBy.userId === user.uid) {
         setIsOwner(true);
+      } else {
+        setIsOwner(false);
       }
     } catch (error) {
       console.error("Error fetching recipe details:", error);
@@ -60,25 +70,34 @@ const RecipeDetails = () => {
   };
 
   const handleLike = async () => {
+    if (!user) {
+      toast.error("Please login to like a recipe.");
+      navigate("/login", { state: { from: location } });
+      return;
+    }
     if (isOwner) {
-      toast.info("You cannot like your own recipe");
+      toast.info("You cannot like your own recipe.");
       return;
     }
 
     try {
       setLikeLoading(true);
-      await likeRecipe(id);
+      const updatedRecipe = await likeRecipe(id); // Assuming likeRecipe returns the updated recipe
       
-      // Update the recipe with incremented like count
+      // Update the recipe with the new like count from the server response
       setRecipe(prev => ({
         ...prev,
-        likes: prev.likes + 1
+        likes: updatedRecipe.data.likeCount
       }));
       
       toast.success("Recipe liked successfully!");
     } catch (error) {
       console.error("Error liking recipe:", error);
-      toast.error("Failed to like recipe");
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Failed to like recipe. Please try again.");
+      }
     } finally {
       setLikeLoading(false);
     }
@@ -160,18 +179,24 @@ const RecipeDetails = () => {
               <div className="flex flex-wrap gap-6 mb-8">
                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
                   <FaClock className="text-primary" />
-                  <span>{recipe.prepTime} minutes</span>
+                  <span>{recipe.preparationTime} minutes</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
                   <FaUtensils className="text-primary" />
                   <span>{recipe.cuisineType} Cuisine</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                  <FaHeart
-                    className={`${isOwner ? "text-gray-400" : "text-primary"}`}
-                  />
+                  <FaHeart className="text-primary" />
                   <span>{recipe.likes} likes</span>
                 </div>
+                 {recipe.addedBy && recipe.addedBy.userEmail && (
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    </svg>
+                    <span>Added by: {recipe.addedBy.userEmail}</span>
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
