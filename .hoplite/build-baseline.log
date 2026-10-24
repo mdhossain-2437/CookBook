@@ -1,0 +1,41 @@
+npm warn Unknown env config "store-dir". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> recipe-book-app-client@0.1.0 build
+> vite build
+
+vite v4.5.0 building for production...
+transforming...
+Browserslist: browsers data (caniuse-lite) is 17 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+🌼   daisyUI 4.12.24
+├─ ✔︎ 2 themes added		https://daisyui.com/docs/themes
+╰─ ❤︎ Support daisyUI project:	https://opencollective.com/daisyui
+
+
+🌼   daisyUI 4.12.24
+├─ ✔︎ 2 themes added		https://daisyui.com/docs/themes
+╰─ ❤︎ Support daisyUI project:	https://opencollective.com/daisyui
+
+[plugin:vite:esbuild] Duplicate key "_id" in object literal
+10 |    const [formData, setFormData] = useState({
+11 |      _id: "",
+12 |      _id: "",
+   |      ^
+13 |      title: "",
+14 |      image: "",
+
+node_modules/lottie-web/build/player/lottie.js (14422:32) Use of eval in "node_modules/lottie-web/build/player/lottie.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+✓ 2368 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     0.79 kB │ gzip:   0.44 kB
+dist/assets/index-1ed3d73c.css    137.33 kB │ gzip:  23.64 kB
+dist/assets/index-be846c73.js   1,730.66 kB │ gzip: 446.76 kB
+
+(!) Some chunks are larger than 500 kBs after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 21.11s
