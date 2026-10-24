@@ -44,6 +44,8 @@ to download.
 
 ## Running it
 
+Requires Node.js 20.19+ or 22.12+ (Vite 8).
+
 ```bash
 cd game
 npm install
