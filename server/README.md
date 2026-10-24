@@ -53,6 +53,13 @@ This is the backend server for the Recipe Book Application, built with Node.js, 
 
 This server can be deployed to Vercel or any other Node.js hosting platform.
 
+## Tests
+
+With Node.js 18+ and dependencies installed, run `npm test` from `server`.
+The tests exercise the Express routes, middleware, controllers, and Mongoose
+documents, stubbing Firebase token verification and database operations. They do
+not need a MongoDB instance, Firebase credentials, or a `.env` file.
+
 ## Technologies Used
 
 - Node.js
