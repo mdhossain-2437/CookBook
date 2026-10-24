@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Open City — 3D open-world driving game</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+
+    <div id="hud">
+      <div id="top-right" class="shadow">
+        <div id="money">$0</div>
+        <div id="wanted"></div>
+        <div id="clock">00:00</div>
+      </div>
+      <div id="mission" class="shadow">
+        <div id="mission-title"></div>
+        <div id="mission-objective"></div>
+        <div id="mission-timer"></div>
+      </div>
+      <div id="bottom-left">
+        <canvas id="minimap" width="220" height="220"></canvas>
+        <div id="health-bar"><div id="health-fill"></div></div>
+      </div>
+      <div id="vehicle-info" class="shadow">
+        <span id="speed">0</span><span class="unit">km/h</span>
+        <div id="vehicle-name"></div>
+      </div>
+      <div id="prompt"></div>
+      <div id="big-message" class="shadow"></div>
+      <div id="notice"></div>
+      <div id="crosshair"></div>
+      <div id="help">
+        <b>WASD</b> move / drive &nbsp;·&nbsp; <b>Shift</b> sprint &nbsp;·&nbsp; <b>Space</b> jump / handbrake &nbsp;·&nbsp;
+        <b>E</b> enter / exit car &nbsp;·&nbsp; <b>Mouse</b> look &nbsp;·&nbsp; <b>Click</b> shoot &nbsp;·&nbsp; <b>M</b> mute &nbsp;·&nbsp; <b>H</b> hide this
+      </div>
+    </div>
+    <div id="fade"></div>
+
+    <div id="overlay">
+      <div class="panel">
+        <h1 id="overlay-title">OPEN CITY</h1>
+        <p class="tagline">Steal cars. Outrun the cops. Take jobs. Explore the island.</p>
+        <div class="controls">
+          <div><span>W A S D</span> walk / drive</div>
+          <div><span>Mouse</span> look around</div>
+          <div><span>Shift</span> sprint</div>
+          <div><span>Space</span> jump · handbrake</div>
+          <div><span>E</span> enter / exit vehicle</div>
+          <div><span>Left click</span> shoot (on foot)</div>
+          <div><span>M</span> mute sound</div>
+          <div><span>Esc</span> pause</div>
+        </div>
+        <p class="tip">Walk into a yellow marker to start a job. Hit people or cars and the police will come for you.</p>
+        <button id="play">CLICK TO PLAY</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

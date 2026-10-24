@@ -1,0 +1,311 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #fff;
+  user-select: none;
+}
+
+#game {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+#hud > * {
+  position: absolute;
+}
+
+.shadow {
+  text-shadow: 0 1px 2px #000, 0 0 8px rgba(0, 0, 0, 0.8);
+}
+
+#top-right {
+  top: 18px;
+  right: 22px;
+  text-align: right;
+}
+
+#money {
+  font-size: 28px;
+  font-weight: 800;
+  color: #7ee081;
+  letter-spacing: 1px;
+}
+
+#wanted {
+  font-size: 26px;
+  letter-spacing: 3px;
+  color: #ffd23f;
+}
+
+#wanted .off {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+#wanted.evading {
+  animation: blink 0.6s infinite;
+}
+
+#clock {
+  font-size: 16px;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
+#mission {
+  top: 18px;
+  left: 22px;
+  max-width: 440px;
+  display: none;
+}
+
+#mission-title {
+  font-weight: 800;
+  font-size: 20px;
+  color: #ffd23f;
+  letter-spacing: 1px;
+}
+
+#mission-objective {
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+#mission-timer {
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+#mission-timer.low {
+  color: #ff5a4e;
+}
+
+#bottom-left {
+  left: 22px;
+  bottom: 22px;
+}
+
+#minimap {
+  width: 220px;
+  height: 220px;
+  display: block;
+  border-radius: 50%;
+}
+
+#health-bar {
+  margin-top: 8px;
+  width: 220px;
+  height: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+#health-fill {
+  height: 100%;
+  width: 100%;
+  background: #3fb950;
+  transition: width 0.15s;
+}
+
+#health-fill.low {
+  background: #ff5a4e;
+}
+
+#vehicle-info {
+  right: 22px;
+  bottom: 22px;
+  text-align: right;
+  display: none;
+}
+
+#speed {
+  font-size: 46px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+#vehicle-info .unit {
+  font-size: 16px;
+  margin-left: 6px;
+  opacity: 0.8;
+}
+
+#vehicle-name {
+  font-size: 15px;
+  opacity: 0.85;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+#prompt {
+  left: 50%;
+  bottom: 120px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 16px;
+  display: none;
+  white-space: nowrap;
+}
+
+#big-message {
+  left: 50%;
+  top: 38%;
+  transform: translate(-50%, -50%);
+  font-size: 64px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  display: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+#big-message.gold {
+  color: #ffd23f;
+}
+
+#big-message.green {
+  color: #7ee081;
+}
+
+#big-message.red {
+  color: #ff3b30;
+}
+
+#big-message.white {
+  color: #fff;
+}
+
+#notice {
+  left: 50%;
+  bottom: 70px;
+  transform: translateX(-50%);
+  font-size: 17px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 14px;
+  border-radius: 6px;
+  display: none;
+  max-width: 70vw;
+  text-align: center;
+}
+
+#crosshair {
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px #000;
+  display: none;
+}
+
+#help {
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: none;
+  white-space: nowrap;
+}
+
+#help b {
+  color: #ffd23f;
+}
+
+#fade {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 16, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.panel {
+  text-align: center;
+  max-width: 720px;
+  padding: 32px;
+}
+
+.panel h1 {
+  font-size: 64px;
+  margin: 0;
+  letter-spacing: 8px;
+  color: #ffd23f;
+}
+
+.tagline {
+  opacity: 0.85;
+  font-size: 18px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 24px;
+  text-align: left;
+  margin: 24px auto;
+  font-size: 15px;
+}
+
+.controls span {
+  display: inline-block;
+  min-width: 90px;
+  color: #ffd23f;
+  font-weight: 700;
+}
+
+.tip {
+  opacity: 0.7;
+  font-size: 14px;
+}
+
+#play {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  padding: 14px 36px;
+  border: 0;
+  border-radius: 8px;
+  background: #ffd23f;
+  color: #000;
+  cursor: pointer;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.3;
+  }
+}
