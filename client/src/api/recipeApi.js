@@ -1,14 +1,11 @@
 import axiosInstance from './axiosInstance';
 
-// Get all recipes with optional pagination
-export const getAllRecipes = async (page = 1, limit = 10) => {
-  try {
-    const response = await axiosInstance.get(`/recipes?page=${page}&limit=${limit}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching recipes:', error);
-    return { recipes: [], totalRecipes: 0, totalPages: 0 }; // Return empty data structure
+export const getAllRecipes = async () => {
+  const response = await axiosInstance.get('/recipes');
+  if (!Array.isArray(response.data?.data)) {
+    throw new Error('Unexpected recipe response');
   }
+  return response.data.data;
 };
 
 // Get top recipes

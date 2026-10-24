@@ -1,24 +1,20 @@
 import * as React from "react";
-import * as SwitchPrimitives from "@radix-ui/react-switch";
 
 import { cn } from "../../lib/utils";
 
-const Switch = React.forwardRef(({ className, ...props }, ref) => (
-  <SwitchPrimitives.Root
-    className={cn(
-      "peer inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input",
-      className
-    )}
+const Switch = React.forwardRef(({ className, onCheckedChange, ...props }, ref) => (
+  <input
     {...props}
     ref={ref}
-  >
-    <SwitchPrimitives.Thumb
-      className={cn(
-        "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0"
-      )}
-    />
-  </SwitchPrimitives.Root>
+    type="checkbox"
+    role="switch"
+    onChange={(event) => onCheckedChange?.(event.target.checked)}
+    className={cn(
+      "peer h-6 w-11 shrink-0 cursor-pointer appearance-none rounded-full bg-gray-300 transition-colors checked:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 after:ml-0.5 after:mt-0.5 after:block after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-lg after:transition-transform checked:after:translate-x-5",
+      className
+    )}
+  />
 ));
-Switch.displayName = SwitchPrimitives.Root.displayName;
+Switch.displayName = "Switch";
 
 export { Switch };
