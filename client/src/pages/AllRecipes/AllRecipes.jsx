@@ -7,15 +7,19 @@ import RecipeCard from "../../components/Recipe/RecipeCard";
 import SectionTitle from "../../components/Shared/SectionTitle/SectionTitle";
 import Loader from "../../components/Shared/Loader/Loader";
 import AdvancedSearch from "../../components/Search/AdvancedSearch/AdvancedSearch";
+import { filterRecipes } from "../../utils/filterRecipes";
 
 const AllRecipes = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  const [cuisineType, setCuisineType] = useState(searchParams.get("cuisine") || "");
-  const [category, setCategory] = useState(searchParams.get("category") || "");
-  const [sortOrder, setSortOrder] = useState("desc"); // desc = newest first
+  const [error, setError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const searchTerm = searchParams.get("search") || searchParams.get("q") || "";
+  const cuisineType = searchParams.get("cuisine") || "";
+  const category = searchParams.get("category") || "";
+  const sortOrder = searchParams.get("sort") === "asc" ? "asc" : "desc";
+  const [searchQuery, setSearchQuery] = useState(searchTerm);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
 
   // Filter options
@@ -23,8 +27,31 @@ const AllRecipes = () => {
   const categories = ["Breakfast", "Lunch", "Dinner", "Dessert", "Vegan"];
 
   useEffect(() => {
-    fetchRecipes();
-  }, [cuisineType, category, sortOrder]);
+    let cancelled = false;
+    const loadRecipes = async () => {
+      setLoading(true);
+      setError(false);
+      try {
+        const data = await getAllRecipes();
+        if (!cancelled) setRecipes(data);
+      } catch (error) {
+        console.error("Error fetching recipes:", error);
+        if (!cancelled) setError(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    loadRecipes();
+    return () => { cancelled = true; };
+  }, [retryCount]);
+
+  useEffect(() => {
+    setSearchQuery(searchTerm);
+  }, [searchTerm]);
+
+  const filteredRecipes = filterRecipes(recipes, {
+    search: searchTerm, cuisine: cuisineType, category, sortOrder,
+  });
 
   useEffect(() => {
     // Parse advanced search params
@@ -40,101 +67,31 @@ const AllRecipes = () => {
     }
   }, [searchParams]);
 
-  const fetchRecipes = async () => {
-    try {
-      setLoading(true);
-      let data;
-
-      // Build query parameters
-      const params = {};
-      if (cuisineType) params.cuisineType = cuisineType;
-      if (category) params.category = category;
-      params.sortOrder = sortOrder;
-
-      // Add advanced search parameters
-      const ingredients = searchParams.get('ingredients')?.split(',') || [];
-      if (ingredients.length > 0) params.ingredients = ingredients;
-      
-      const timeMin = searchParams.get('timeMin');
-      if (timeMin) params.timeMin = timeMin;
-      
-      const timeMax = searchParams.get('timeMax');
-      if (timeMax) params.timeMax = timeMax;
-      
-      const difficulty = searchParams.get('difficulty')?.split(',') || [];
-      if (difficulty.length > 0) params.difficulty = difficulty;
-      
-      const dietary = searchParams.get('dietary')?.split(',') || [];
-      if (dietary.length > 0) params.dietary = dietary;
-
-      data = await getAllRecipes(params);
-
-      // Filter by search query if present (client-side filtering)
-      if (searchQuery) {
-        data = data.filter(recipe =>
-          recipe.title.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }
-
-      setRecipes(data);
-    } catch (error) {
-      console.error("Error fetching recipes:", error);
-    } finally {
-      setLoading(false);
-    }
+  const updateParam = (key, value) => {
+    const params = new URLSearchParams(searchParams);
+    if (value) params.set(key, value);
+    else params.delete(key);
+    setSearchParams(params);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Update URL params
+    const query = searchQuery.trim();
     const params = new URLSearchParams(searchParams);
-    if (searchQuery) {
-      params.set("search", searchQuery);
-    } else {
-      params.delete("search");
-    }
-    setSearchParams(params);
-    fetchRecipes();
-  };
-
-  const handleCuisineChange = (e) => {
-    const value = e.target.value;
-    setCuisineType(value);
-    
-    // Update URL params
-    const params = new URLSearchParams(searchParams);
-    if (value) {
-      params.set("cuisine", value);
-    } else {
-      params.delete("cuisine");
-    }
+    params.delete("q");
+    if (query) params.set("search", query);
+    else params.delete("search");
+    setSearchQuery(query);
     setSearchParams(params);
   };
 
-  const handleCategoryChange = (e) => {
-    const value = e.target.value;
-    setCategory(value);
-    
-    // Update URL params
-    const params = new URLSearchParams(searchParams);
-    if (value) {
-      params.set("category", value);
-    } else {
-      params.delete("category");
-    }
-    setSearchParams(params);
-  };
-
-  const toggleSortOrder = () => {
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-  };
+  const handleCuisineChange = (e) => updateParam("cuisine", e.target.value);
+  const handleCategoryChange = (e) => updateParam("category", e.target.value);
+  const toggleSortOrder = () => updateParam("sort", sortOrder === "desc" ? "asc" : "");
 
   const clearFilters = () => {
-    setCuisineType("");
-    setCategory("");
     setSearchQuery("");
     setSearchParams({});
-    fetchRecipes();
   };
 
   const toggleAdvancedSearch = () => {
@@ -159,6 +116,7 @@ const AllRecipes = () => {
               <form onSubmit={handleSearch} className="relative">
                 <input
                   type="text"
+                  aria-label="Search recipes"
                   placeholder="Search recipes..."
                   className="w-full py-3 px-4 pr-10 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
                   value={searchQuery}
@@ -166,6 +124,7 @@ const AllRecipes = () => {
                 />
                 <button
                   type="submit"
+                  aria-label="Search"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-primary"
                 >
                   <FaSearch size={18} />
@@ -178,6 +137,7 @@ const AllRecipes = () => {
               {/* Cuisine Type Filter */}
               <div className="w-full sm:w-auto">
                 <select
+                  aria-label="Cuisine"
                   value={cuisineType}
                   onChange={handleCuisineChange}
                   className="w-full py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white appearance-none bg-no-repeat bg-right"
@@ -199,6 +159,7 @@ const AllRecipes = () => {
               {/* Category Filter */}
               <div className="w-full sm:w-auto">
                 <select
+                  aria-label="Category"
                   value={category}
                   onChange={handleCategoryChange}
                   className="w-full py-3 px-4 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white appearance-none bg-no-repeat bg-right"
@@ -225,12 +186,12 @@ const AllRecipes = () => {
                 {sortOrder === "desc" ? (
                   <>
                     <FaSortAmountDown />
-                    <span>Newest</span>
+                    <span>Newest first</span>
                   </>
                 ) : (
                   <>
                     <FaSortAmountUp />
-                    <span>Oldest</span>
+                    <span>Oldest first</span>
                   </>
                 )}
               </button>
@@ -245,7 +206,7 @@ const AllRecipes = () => {
               </button>
 
               {/* Clear Filters */}
-              {(cuisineType || category || searchQuery) && (
+              {(searchParams.toString() || searchQuery) && (
                 <button
                   onClick={clearFilters}
                   className="flex items-center justify-center gap-2 py-3 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
@@ -267,13 +228,28 @@ const AllRecipes = () => {
 
         {/* Recipes Grid */}
         {loading ? (
-          <div className="flex justify-center items-center py-20">
+          <div role="status" aria-label="Loading recipes" className="flex justify-center items-center py-20">
             <Loader size="large" />
+          </div>
+        ) : error ? (
+          <div role="alert" className="py-20 text-center">
+            <h3 className="text-2xl font-bold text-gray-700 dark:text-gray-200 mb-4">
+              Couldn’t load recipes
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
+              Please check your connection and try again.
+            </p>
+            <button
+              onClick={() => setRetryCount((count) => count + 1)}
+              className="py-3 px-4 bg-primary text-white rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              Try again
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {recipes.length > 0 ? (
-              recipes.map((recipe, index) => (
+            {filteredRecipes.length > 0 ? (
+              filteredRecipes.map((recipe, index) => (
                 <Fade key={recipe._id} direction="up" delay={index * 50} triggerOnce>
                   <RecipeCard recipe={recipe} />
                 </Fade>
