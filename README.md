@@ -62,3 +62,15 @@ Recipe Book App is a user-friendly platform where culinary enthusiasts can manag
 *   **Client:** Deploy the `client` directory to a platform like Netlify. Ensure all environment variables (prefixed with `VITE_`) are set, and configure SPA redirect rules (e.g., `/* /index.html 200`).
 
 ---
+## Open City — 3D open-world game
+
+The repository also contains **Open City**, a standalone GTA-style 3D driving/open-world game built with
+Three.js and Vite, in the [`game/`](game/) directory. It is independent of the recipe app:
+
+```bash
+cd game
+npm install
+npm run dev
+```
+
+See [`game/README.md`](game/README.md) for features, controls and project layout.
