@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "setup": {
+      "command": "cd client && npm ci"
+    },
+    "run": {
+      "command": "cd client && npm run dev -- --host 0.0.0.0"
+    }
+  },
+  "ports": {
+    "preview": 3000
+  }
+}
